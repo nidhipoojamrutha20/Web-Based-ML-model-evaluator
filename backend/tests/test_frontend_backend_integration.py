@@ -88,6 +88,19 @@ class TestFrontendBackendIntegration(unittest.TestCase):
         self.assertIn("result.row_count", script)
         self.assertIn("result.column_count", script)
 
+    def test_us16_split_slider_updates_and_is_sent_to_evaluation(self):
+        frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
+        page = (frontend_dir / "index.html").read_text(encoding="utf-8")
+        script = (frontend_dir / "js" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="split-range"', page)
+        self.assertIn('value="0.2"', page)
+        self.assertIn('id="split-display"', page)
+        self.assertIn("updateSplitDisplay", script)
+        self.assertIn('addEventListener("input", updateSplitDisplay)', script)
+        self.assertIn('apiRequest("/ml/evaluate"', script)
+        self.assertIn('test_size: Number(document.getElementById("split-range").value)', script)
+
     def test_us12_preview_is_loaded_after_upload_and_rendered_safely(self):
         frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
         page = (frontend_dir / "index.html").read_text(encoding="utf-8")
@@ -95,10 +108,38 @@ class TestFrontendBackendIntegration(unittest.TestCase):
 
         self.assertIn('id="preview-status"', page)
         self.assertIn('id="preview-sample-label"', page)
+        self.assertIn('id="preview-table"', page)
+        self.assertIn("<thead", page)
+        self.assertIn("<tbody>", page)
         self.assertIn("await loadDatasetPreview(result.dataset_id)", script)
         self.assertIn("/preview", script)
         self.assertIn("preview.data_types[column]", script)
         self.assertIn("preview.row_count", script)
+        self.assertIn("preview.column_count", script)
+        self.assertIn("for (const column of preview.columns)", script)
+        self.assertIn("for (const row of preview.rows)", script)
+        self.assertIn("preview.sample_size", script)
+        self.assertIn("cell.textContent", script)
+        self.assertNotIn("innerHTML = row", script)
+
+    def test_auth_and_upload_frontend_flows_remain_wired(self):
+        frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
+        page = (frontend_dir / "index.html").read_text(encoding="utf-8")
+        login_page = (frontend_dir / "login.html").read_text(encoding="utf-8")
+        script = (frontend_dir / "js" / "app.js").read_text(encoding="utf-8")
+
+        self.assertIn('id="registration-form"', login_page)
+        self.assertIn('id="login-form"', login_page)
+        self.assertIn('id="upload-form"', page)
+        self.assertIn('addEventListener("submit", uploadDataset)', script)
+        self.assertIn('addEventListener("submit", async (event) =>', script)
+        self.assertIn('apiRequest("/auth/register"', script)
+        self.assertIn('apiRequest("/auth/login"', script)
+        self.assertIn('apiRequest("/auth/session")', script)
+        self.assertIn('const endpoint = isReplacement', script)
+        self.assertIn('"/dataset/upload"', script)
+        self.assertIn('apiRequest(endpoint', script)
+
     def test_us14a_admin_panel_elements_and_wiring(self):
         frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
         page = (frontend_dir / "index.html").read_text(encoding="utf-8")
@@ -118,6 +159,24 @@ class TestFrontendBackendIntegration(unittest.TestCase):
         self.assertIn('loadAdminUsers', script)
         self.assertIn('loadAdminDatasets', script)
         self.assertIn('loadAdminLogs', script)
+
+
+    def test_us17_to_us20_frontend_catalog_history_comparison_and_review_are_wired(self):
+        frontend_dir = Path(__file__).resolve().parents[2] / "frontend"
+        script = (frontend_dir / "js" / "app.js").read_text(encoding="utf-8")
+        page = (frontend_dir / "index.html").read_text(encoding="utf-8")
+        self.assertIn('apiRequest("/ml/algorithms")', script)
+        self.assertIn('"/ml/compare"', script)
+        self.assertIn('"/ml/instructor/evaluations"', script)
+        self.assertIn('"/ml/instructor/compare"', script)
+        self.assertIn("loadInstructorEvaluation", script)
+        self.assertIn('classList.toggle("d-none", readOnly)', script)
+        self.assertIn('id="dataset-preview-card"', page)
+        self.assertIn('id="statistics-card"', page)
+        self.assertIn('id="instructor-review-details"', page)
+        self.assertIn("result.confusion_matrix", script)
+        self.assertIn('id="run-history-body"', page)
+        self.assertIn('id="instructor-mode-banner"', page)
 
 
 if __name__ == "__main__":

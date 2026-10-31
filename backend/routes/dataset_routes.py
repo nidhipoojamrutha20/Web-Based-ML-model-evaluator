@@ -12,6 +12,7 @@ from database.db import db
 from ml.preprocessor import DataPreprocessor
 from models.dataset import Dataset
 from routes.auth_utils import (
+    non_instructor_required,
     get_owned_dataset,
     login_required,
     owned_dataset_query,
@@ -236,7 +237,7 @@ def _read_and_validate_upload():
 
 
 @dataset_bp.route("", methods=["GET"])
-@login_required
+@non_instructor_required
 def list_datasets():
     """List datasets belonging to the logged-in user."""
     datasets = (
@@ -251,7 +252,7 @@ def list_datasets():
 
 
 @dataset_bp.route("/<int:dataset_id>", methods=["GET"])
-@login_required
+@non_instructor_required
 def get_dataset(dataset_id):
     """Retrieve an owned dataset's metadata."""
     dataset = get_owned_dataset(dataset_id, g.current_user.id)
@@ -263,7 +264,7 @@ def get_dataset(dataset_id):
 
 
 @dataset_bp.route("/upload", methods=["POST"])
-@login_required
+@non_instructor_required
 def upload_dataset():
     """Upload a new dataset without replacing existing dataset records."""
     result, _, _, error_response = _read_and_validate_upload()
@@ -323,7 +324,7 @@ def upload_dataset():
 
 
 @dataset_bp.route("/<int:dataset_id>/replace", methods=["POST"])
-@login_required
+@non_instructor_required
 def replace_dataset(dataset_id):
     """Replace an owned dataset while preserving its database ID."""
     dataset = get_owned_dataset(dataset_id, g.current_user.id)
@@ -396,7 +397,7 @@ def replace_dataset(dataset_id):
 
 
 @dataset_bp.route("/<int:dataset_id>/preview", methods=["GET"])
-@login_required
+@non_instructor_required
 def preview_dataset(dataset_id):
     dataset = get_owned_dataset(dataset_id, g.current_user.id)
     if dataset is None:
@@ -474,7 +475,7 @@ def preview_dataset(dataset_id):
 
 
 @dataset_bp.route("/<int:dataset_id>/statistics", methods=["GET"])
-@login_required
+@non_instructor_required
 def dataset_statistics(dataset_id):
     """Return descriptive statistics for an owned dataset."""
     dataset = get_owned_dataset(dataset_id, g.current_user.id)
@@ -576,7 +577,7 @@ def dataset_statistics(dataset_id):
 
 
 @dataset_bp.route("/<int:dataset_id>/preprocess", methods=["POST"])
-@login_required
+@non_instructor_required
 def preprocess_dataset(dataset_id):
     """Apply data preprocessing operations to an owned dataset (US-14 / FR-3.1)."""
     dataset = get_owned_dataset(dataset_id, g.current_user.id)

@@ -195,3 +195,14 @@ def log_activity(action, user_id=None, details=None, ip_address=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+
+def non_instructor_required(view):
+    """Allow authenticated students/admins while enforcing instructor read-only access."""
+    @wraps(view)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if getattr(g.current_user, "role", "student") == "instructor":
+            return jsonify({"error": "Instructor accounts have read-only access."}), 403
+        return view(*args, **kwargs)
+    return wrapped

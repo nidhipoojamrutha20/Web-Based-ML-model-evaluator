@@ -25,6 +25,7 @@ class EvaluationResult(db.Model):
     metrics_json = db.Column(db.JSON, nullable=False)
     confusion_matrix_json = db.Column(db.JSON, nullable=True)
     report_json = db.Column(db.JSON, nullable=True)
+    shared_with_instructors = db.Column(db.Boolean, nullable=False, default=False, server_default=db.text("0"))
 
     created_at = db.Column(
         db.DateTime,

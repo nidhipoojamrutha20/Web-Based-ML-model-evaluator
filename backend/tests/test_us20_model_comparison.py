@@ -85,7 +85,9 @@ class TestUS20ModelComparison(unittest.TestCase):
         self.assertEqual(response.status_code, 201, response.json)
         model = MLModel.query.get(response.json["model"]["id"])
         self.assertTrue(os.path.isfile(model.model_path))
-        self.assertEqual(model.status, "trained")
+        # US-18's canonical persisted status is "completed"; US-20 uses the
+        # same status for its persisted comparison runs.
+        self.assertEqual(model.status, "completed")
         self.assertEqual(model.config_json["test_size"], 0.25)
         self.assertEqual(set(response.json["evaluation"]["metrics"]), {"accuracy", "precision", "recall", "f1"})
         listed = self.client.get("/api/ml/models")

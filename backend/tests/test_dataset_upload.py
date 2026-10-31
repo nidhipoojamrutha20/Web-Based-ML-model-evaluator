@@ -438,5 +438,40 @@ class TestDatasetUpload(unittest.TestCase):
         self.assertIn("malformed", response.json["error"].lower())
 
 
+    def test_us11_replacement_updates_owned_dataset_without_changing_its_id(self):
+        self.authenticate()
+        initial = self.upload(b"feature,target\n1,yes\n2,no\n", "initial.csv")
+        self.assertEqual(initial.status_code, 201)
+        dataset_id = initial.json["dataset_id"]
+        original = db.session.get(Dataset, dataset_id)
+        old_path = original.file_path
+        replacement = self.client.post(
+            f"/api/dataset/{dataset_id}/replace",
+            data={"file": (io.BytesIO(b"height,label\n10,A\n20,B\n30,A\n"), "replacement.csv")},
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(replacement.status_code, 200, replacement.get_data(as_text=True))
+        current = db.session.get(Dataset, dataset_id)
+        self.assertEqual(current.id, dataset_id)
+        self.assertEqual(current.filename, "replacement.csv")
+        self.assertEqual(current.row_count, 3)
+        self.assertEqual(current.metadata_json["columns"], ["height", "label"])
+        self.assertNotEqual(current.file_path, old_path)
+        self.assertFalse(os.path.exists(old_path))
+
+    def test_us11_replacement_of_another_users_dataset_is_hidden(self):
+        self.authenticate()
+        uploaded = self.upload(b"feature,target\n1,yes\n2,no\n")
+        other = self.app.test_client()
+        token = uuid4().hex
+        username = f"other_{token[:12]}"
+        other.post("/api/auth/register", json={"username": username, "email": f"{token}@example.com", "password": "StrongPass123!"})
+        other.post("/api/auth/login", json={"username": username, "password": "StrongPass123!"})
+        response = other.post(f"/api/dataset/{uploaded.json['dataset_id']}/replace", data={
+            "file": (io.BytesIO(b"feature,target\n3,yes\n4,no\n"), "stolen.csv")
+        }, content_type="multipart/form-data")
+        self.assertEqual(response.status_code, 404)
+
+
 if __name__ == "__main__":
     unittest.main()
