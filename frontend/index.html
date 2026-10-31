@@ -163,6 +163,15 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label small fw-semibold" for="task-type-select">Task Type</label>
+                                <select class="form-select" id="task-type-select" disabled required>
+                                    <option value="">Choose classification or regression...</option>
+                                    <option value="classification">Classification</option>
+                                    <option value="regression">Regression</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label small fw-semibold d-flex justify-content-between">
                                     <span>Train-Test Split</span>
                                     <span id="split-display" class="text-primary fw-bold">80% Train / 20% Test</span>
@@ -262,6 +271,20 @@
                         </div>
                     </div>
                 </div>
+
+                <section class="card shadow-sm border-0 mt-4" aria-labelledby="comparison-title">
+                    <div class="card-header bg-white py-3 fw-semibold" id="comparison-title">
+                        <i class="bi bi-columns-gap me-2 text-primary"></i>Model Comparison & Downloads
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Select two or more runs trained on the same dataset, target, split, and preprocessing settings.</p>
+                        <div id="comparison-status" class="text-muted small" role="status" aria-live="polite">Loading your trained runs…</div>
+                        <div id="comparison-runs" class="row g-2 mb-3"></div>
+                        <button type="button" class="btn btn-primary btn-sm" id="compare-models-btn" disabled>Compare selected runs</button>
+                        <div id="comparison-feedback" class="small mt-3" role="status" aria-live="polite"></div>
+                        <div id="comparison-results" class="mt-3"></div>
+                    </div>
+                </section>
             </div>
         </div>
     <!-- Admin Modal (FR-7.1 / FR-7.2 / FR-7.3) -->

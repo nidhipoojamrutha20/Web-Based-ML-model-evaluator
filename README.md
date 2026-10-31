@@ -257,8 +257,15 @@ Opening **http://127.0.0.1:5000** in your browser will automatically serve the f
 | `/api/ml/models/<id>` | `GET` | Read an owner-scoped model run |
 | `/api/ml/evaluations` | `GET` | List the authenticated user's evaluation results |
 | `/api/ml/evaluations/<id>` | `GET` | Read an owner-scoped evaluation result |
-| `/api/ml/train` | `POST` | Training (planned: US-18) |
-| `/api/ml/evaluate` | `POST` | Evaluation creation (planned: US-19) |
+| `/api/ml/train` | `POST` | Train, persist an owner-scoped model pipeline and held-out evaluation |
+| `/api/ml/evaluate` | `POST` | Retrieve a run's persisted evaluation |
+| `/api/ml/compare` | `POST` | Compare compatible saved runs using persisted metrics |
+| `/api/ml/models/<id>/download` | `GET` | Download the owner-scoped joblib pipeline |
+| `/api/ml/evaluations/<id>/report` | `GET` | Generate and download an owner-scoped PDF report |
+
+### Model comparison and downloads (US-20)
+
+Training saves scikit-learn preprocessing and estimator pipelines beneath `backend/saved_models/<user-id>/` with restrictive directory/file permissions. The database stores run configuration, dataset fingerprint, feature metadata, artifact checksum, and evaluation metrics. `POST /api/ml/compare` accepts `{ "model_ids": [1, 2] }` and requires the runs to share the dataset contents, target, task, split, random seed, and preprocessing configuration. Its model rows, chart labels, and metric points follow the requested `model_ids` order; chart labels include run IDs so repeated algorithms are distinguishable. It returns persisted classification (`accuracy`, `precision`, `recall`, `f1`) or regression (`mae`, `mse`, `rmse`, `r2`) metrics and chart data. Model downloads are joblib files and are served without loading/deserializing them. Evaluation reports are generated as PDFs with ReportLab, declared in `backend/requirements.txt`.
 
 ### CSV dataset upload and validation (US-08 to US-10)
 
